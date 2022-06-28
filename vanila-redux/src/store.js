@@ -1,4 +1,7 @@
 import { createStore } from 'redux';
+import { combineReducers } from "redux";
+import { persistReducer } from 'redux-persist';
+import storage from "redux-persist/lib/storage";
 
 const ADD = "ADD";
 const DELETE = "DELETE";
@@ -15,7 +18,6 @@ const deleteToDo = (id) => {
         id: parseInt(id)
     };
 };
-JSON.parse(localStorage.getItem("toDos")) || localStorage.setItem("toDos", JSON.stringify([]));
 
 
 const reducer = (state = [], action) => {
@@ -23,15 +25,23 @@ const reducer = (state = [], action) => {
         case ADD:
             return [{ text: action.text, id: Date.now() }, ...state];
         case DELETE:
-            const delItem = state.filter((toDo) => toDo.id !== action.id);
-            localStorage.setItem("toDos", JSON.stringify(delItem));
-            return delItem;
+            return state.filter((todo) => todo !== action.id);
         default:
             return state;
     }
 };
 
-const store = createStore(reducer);
+
+const persistConfig = {
+    key: "todo", //localStorage에 저장될 key값
+    storage: storage
+};
+const allReducer = combineReducers({
+    reducer
+});
+
+
+const store = createStore(persistReducer(persistConfig, allReducer));
 
 export const actionCreators = {
     addToDo,
